@@ -1,0 +1,81 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 20px;
+}
+
+nav ul {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+    background-color: #333;
+}
+
+nav li {
+    display: inline;
+}
+
+nav a {
+    display: inline-block;
+    color: #ffffff;
+    text-align: center;
+    padding: 14px 16px;
+    text-decoration: none;
+}
+
+nav a:hover {
+    background-color: #111;
+}
+/* CSS für das Suchformular */
+.search-form {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    margin-bottom: 20px;
+}
+
+.search-form label, .search-form input {
+    margin-bottom: 10px;
+}
+
+.search-form input[type="text"] {
+    width: 300px;
+}
+
+/* Füge hier den Abstand für das Suchformular hinzu */
+.search-form select,
+.search-form div {
+    margin-bottom: 10px; /* Fügt einen Abstand unterhalb jedes Elements hinzu */
+}
+
+/* CSS für die Tabelle */
+.table-container {
+    width: 100%;
+    overflow-x: auto;
+}
+
+
+/* CSS für die Tabelle */
+.table-container {
+    width: 100%;
+    overflow-x: auto;
+}
+
+.table-container table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+}
+
+.table-container th, .table-container td {
+    border: 1px solid #ddd;
+    padding: 12px;
+    text-align: left;
+}
+
+.table-container th {
+    background-color: #f2f2f2;
+}
+
+.table-container tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
