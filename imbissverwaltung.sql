@@ -58,17 +58,19 @@ CREATE TABLE Bestellung (
 
 -- Neue Tabelle für Spezialgebiete
 CREATE TABLE Spezialgebiete (
-    spezialgebietID INT PRIMARY KEY AUTO_INCREMENT,
-    name VARCHAR(50) NOT NULL
+    spezialgebietID INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL
 );
 
 -- Verknüpfungstabelle (Koch ↔ Spezialgebiete)
 CREATE TABLE Koch_Spezialgebiete (
-    kochID INT,
-    spezialgebietID INT,
-    FOREIGN KEY (kochID) REFERENCES Koch(kochID),
-    FOREIGN KEY (spezialgebietID) REFERENCES Spezialgebiete(spezialgebietID)
+    kochID INT NOT NULL,
+    spezialgebietID INT NOT NULL,
+    PRIMARY KEY (kochID, spezialgebietID),
+    FOREIGN KEY (kochID) REFERENCES Koch(kochID) ON DELETE CASCADE,
+    FOREIGN KEY (spezialgebietID) REFERENCES Spezialgebiete(spezialgebietID) ON DELETE CASCADE
 );
+
 
 -- Hinzufügen von Testdaten
 

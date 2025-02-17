@@ -13,10 +13,10 @@
     require_once("db.inc.php");
 
     // Kunden-Auswahl
-    $kundeResult = $mysqli->query("SELECT kundeld, CONCAT(nachname, ' ', vorname) AS kundenname FROM Kunde");
+    $kundeResult = $mysqli->query("SELECT kundeID, CONCAT(nachname, ' ', vorname) AS kundenname FROM Kunde");
 
     // Gekochtes Gericht-Auswahl
-    $gerichtResult = $mysqli->query("SELECT gg.gekochtesgerichtID, k.nachname AS kochname, r.name AS rezeptname 
+    $gerichtResult = $mysqli->query("SELECT gg.gekochtesgerichtID, k.nachname AS kochname, rezept_name AS rezeptname 
                                      FROM GekochtesGericht gg 
                                      JOIN Koch k ON gg.kochID = k.kochID 
                                      JOIN Rezept r ON gg.rezeptID = r.rezeptID");
@@ -26,7 +26,7 @@
         <label for="kundeID">Kunde:</label>
         <select id="kundeID" name="kundeID" required>
             <?php while ($kundeRow = $kundeResult->fetch_assoc()) { ?>
-                <option value="<?php echo $kundeRow['kundeld']; ?>"><?php echo htmlspecialchars($kundeRow['kundenname']); ?></option>
+                <option value="<?php echo $kundeRow['kundeID']; ?>"><?php echo htmlspecialchars($kundeRow['kundenname']); ?></option>
             <?php } ?>
         </select>
         <br>
@@ -43,7 +43,7 @@
         <input type="number" id="preis" name="preis" step="0.01" required><br>
         <label for="zahlungsart">Zahlungsart:</label>
         <select id="zahlungsart" name="zahlungsart" required>
-            <option value="bargeld">Bargeld</option>
+            <option value="bar">Bargeld</option>
             <option value="karte">Karte</option>
             <option value="gutschein">Gutschein</option>
         </select>

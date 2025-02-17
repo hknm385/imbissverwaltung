@@ -1,21 +1,39 @@
 <?php
+ob_start(); // Output Buffering starten
 require_once("db.inc.php");
 
-$kundeID = (int)$_POST['kundeID'];
-$gekochtesgerichtID = (int)$_POST['gekochtesgerichtID'];
-$zeitpunkt = $mysqli->real_escape_string($_POST['zeitpunkt']);
-$preis = (float)$_POST['preis'];
+// Daten aus dem Formular sichern und verarbeiten
+$kundeID     = $mysqli->real_escape_string($_POST['kundeID']);
+$gerichtID   = $mysqli->real_escape_string($_POST['gekochtesgerichtID']);
 $zahlungsart = $mysqli->real_escape_string($_POST['zahlungsart']);
+$zeitpunkt   = $mysqli->real_escape_string($_POST['zeitpunkt']);
+$preis       = (float)$_POST['preis'];
 
-$sql = "INSERT INTO Bestellung (kundeID, gekochtesgerichtID, zeitpunkt, preis, zahlungsart) VALUES ($kundeID, $gekochtesgerichtID, '$zeitpunkt', $preis, '$zahlungsart')";
+$sql = "INSERT INTO Bestellung (kundeID, gekochtesgerichtID, zahlungsart, zeitpunkt, preis)
+        VALUES ('$kundeID', '$gerichtID', '$zahlungsart', '$zeitpunkt', '$preis')";
 
 if ($mysqli->query($sql) === TRUE) {
-    echo "Neue Bestellung erfolgreich angelegt.";
+    $message = "Neue Bestellung erfolgreich angelegt.";
 } else {
-    echo "Fehler: " . $sql . "<br>" . $mysqli->error;
+    $message = "Fehler beim Anlegen der Bestellung: " . $mysqli->error;
 }
 
 $mysqli->close();
 ?>
-
-<a href="bestellungen.php">Zurück zur Bestellungsübersicht</a>
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <title>Bestellung gespeichert</title>
+  <link rel="stylesheet" href="styles.css">
+  <!-- Automatischer Seitenwechsel nach 3 Sekunden -->
+  <meta http-equiv="refresh" content="3;url=bestellungen.php" />
+</head>
+<body>
+  <?php include("navigation.inc.php"); ?>
+  <div class="success">
+    <h1><?php echo htmlspecialchars($message); ?></h1>
+    <p><a href="bestellungen.php">Zurück zur Bestellungsübersicht</a></p>
+  </div>
+</body>
+</html>

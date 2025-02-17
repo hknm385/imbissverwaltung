@@ -43,6 +43,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $kochID = $mysqli->insert_id;
 
             // 3. Spezialgebiete verknüpfen
+            // Vor dem Speichern alte Spezialgebiete des Kochs löschen
+            $stmt_delete = $mysqli->prepare("DELETE FROM Koch_Spezialgebiete WHERE kochID = ?");
+            $stmt_delete->bind_param("i", $kochID);
+            $stmt_delete->execute();
+
             if (!empty($spezialgebiete)) {
                 $stmt_spezial = $mysqli->prepare("
                     INSERT INTO Koch_Spezialgebiete 
@@ -59,6 +64,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     }
                 }
             }
+
 
             // Alles erfolgreich → Transaktion bestätigen
             $mysqli->commit();

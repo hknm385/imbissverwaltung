@@ -30,11 +30,15 @@
         <label for="search_spezialgebiet">Spezialgebiet:</label>
         
         <div id="search_spezialgebiet">
-            <input type="checkbox" name="search_spezialgebiet[]" value="Desserts"> Desserts
-            <input type="checkbox" name="search_spezialgebiet[]" value="Hauptspeisen"> Hauptspeisen
-            <input type="checkbox" name="search_spezialgebiet[]" value="Suppen"> Suppen
-            <input type="checkbox" name="search_spezialgebiet[]" value="Vorspeisen"> Vorspeisen
-            <input type="checkbox" name="search_spezialgebiet[]" value="Grillgerichte"> Grillgerichte
+        <input type="checkbox" name="search_spezialgebiet[]" value="Vorspeisen"> Vorspeisen
+        <input type="checkbox" name="search_spezialgebiet[]" value="Hauptgerichte"> Hauptgerichte
+        <input type="checkbox" name="search_spezialgebiet[]" value="Beilagen"> Beilagen
+        <input type="checkbox" name="search_spezialgebiet[]" value="Desserts"> Desserts
+        <input type="checkbox" name="search_spezialgebiet[]" value="Suppen und Eintöpfe"> Suppen und Eintöpfe
+        <input type="checkbox" name="search_spezialgebiet[]" value="Salate"> Salate
+        <input type="checkbox" name="search_spezialgebiet[]" value="Saucen und Dips"> Saucen und Dips
+        <input type="checkbox" name="search_spezialgebiet[]" value="Grillgerichte"> Grillgerichte
+        <input type="checkbox" name="search_spezialgebiet[]" value="Vegetarisches und veganes"> Vegetarisches und veganes
         </div>
         <br>
         <input type="submit" value="Suchen">
@@ -66,16 +70,14 @@ if ($search_geschlecht !== '') {
     $sql .= " AND geschlecht = '$search_geschlecht'";
 }
 if (!empty($search_spezialgebiet)) {
-    $sql .= " AND (";
-    foreach ($search_spezialgebiet as $key => $value) {
-        $escaped_value = $mysqli->real_escape_string($value);
-        if ($key > 0) {
-            $sql .= " OR ";
-        }
-        $sql .= "spezialgebiet LIKE '%$escaped_value%'";
-    }
-    $sql .= ")";
+    $sql .= " AND Koch.kochID IN (
+        SELECT Koch_Spezialgebiete.kochID 
+        FROM Koch_Spezialgebiete 
+        JOIN Spezialgebiete ON Koch_Spezialgebiete.spezialgebietID = Spezialgebiete.spezialgebietID
+        WHERE Spezialgebiete.name IN ('" . implode("','", array_map([$mysqli, 'real_escape_string'], $search_spezialgebiet)) . "')
+    )";
 }
+
 
 $result = $mysqli->query($sql);
 

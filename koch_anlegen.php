@@ -39,7 +39,7 @@
        <div class="checkbox-group">
               <?php
               require_once("db.inc.php");
-              $spezialgebiete = $mysqli->query("SELECT * FROM Spezialgebiete");
+              $spezialgebiete = $mysqli->query("SELECT * FROM Spezialgebiete ORDER BY spezialgebietID ASC");
               while ($row = $spezialgebiete->fetch_assoc()) {
                      echo '<label class="checkbox-label">';
                      echo '<input type="checkbox" name="spezialgebiete[]" value="' . $row['spezialgebietID'] . '"> ';
