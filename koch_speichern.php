@@ -1,47 +1,83 @@
 <?php
-include 'db.inc.php';
+require_once("db.inc.php");
 
-// Eingabedaten holen und validieren
-$nachname = $mysqli->real_escape_string(trim($_POST['nachname']));
-$vorname = $mysqli->real_escape_string(trim($_POST['vorname']));
-$anzahl_von_sternen = isset($_POST['anzahl_von_sternen']) ? (int)$_POST['anzahl_von_sternen'] : 0;
-$alter_koch = isset($_POST['alter_koch']) ? (int)$_POST['alter_koch'] : null;
-$geschlecht = $mysqli->real_escape_string($_POST['geschlecht']);
-$spezialgebiete = isset($_POST['spezialgebiet']) ? $_POST['spezialgebiet'] : [];
-$spezialgebiet = implode(',', array_map([$mysqli, 'real_escape_string'], $spezialgebiete));
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    // Eingabedaten holen und validieren
+    $nachname = trim($_POST['nachname']);
+    $vorname = trim($_POST['vorname']);
+    $anzahl_von_sternen = (int)$_POST['anzahl_von_sternen'];
+    $alter_koch = (int)$_POST['alter_koch'];
+    $geschlecht = trim($_POST['geschlecht']);
+    $spezialgebiete = $_POST['spezialgebiete'] ?? []; // Array von Spezialgebiet-IDs
 
-// Eingabedaten überprüfen
-$fehler = [];
-if (empty($nachname)) { $fehler[] = "Der Nachname darf nicht leer sein."; }
-if (empty($vorname)) { $fehler[] = "Der Vorname darf nicht leer sein."; }
-if ($alter_koch !== null && $alter_koch < 18) { $fehler[] = "Der Koch muss mindestens 18 Jahre alt sein."; }
-if (!in_array($geschlecht, ['männlich', 'weiblich'])) { $fehler[] = "Ungültige Geschlechtsangabe."; }
+    // Validierung
+    $fehler = [];
+    if (empty($nachname)) $fehler[] = "Nachname fehlt.";
+    if (empty($geschlecht)) $fehler[] = "Geschlecht fehlt.";
 
-// Wenn es Fehler gibt, zeige sie an
-if (!empty($fehler)) {
-    echo "<h2>Fehler bei der Eingabe:</h2><ul>";
-    foreach ($fehler as $fehlermeldung) {
-        echo "<li>" . htmlspecialchars($fehlermeldung) . "</li>";
-    }
-    echo "</ul>";
-    echo "<a href='koch_anlegen.php'>Zurück zum Formular</a>";
-} else {
-    // SQL Statement erstellen
-    $sql = "INSERT INTO Koch (nachname, vorname, anzahl_von_sternen, alter_koch, geschlecht, spezialgebiet)
-            VALUES ('$nachname', '$vorname', $anzahl_von_sternen, $alter_koch, '$geschlecht', '$spezialgebiet')";
+    if (empty($fehler)) {
+        try {
+            // Transaktion starten
+            $mysqli->begin_transaction();
 
-    // Daten in die Datenbank einfügen
-    if ($mysqli->query($sql) === TRUE) {
-        echo "<h2>Neuer Koch erfolgreich angelegt.</h2>";
-        echo "<script>
-                setTimeout(function() {
-                    window.location.href = 'koeche.php';
-                }, 3000);
-              </script>";
+            // 1. Koch in die Haupttabelle einfügen
+            $stmt = $mysqli->prepare("
+                INSERT INTO Koch 
+                (nachname, vorname, anzahl_von_sternen, alter_koch, geschlecht) 
+                VALUES (?, ?, ?, ?, ?)
+            ");
+            $stmt->bind_param(
+                "ssiis", 
+                $nachname, 
+                $vorname, 
+                $anzahl_von_sternen, 
+                $alter_koch, 
+                $geschlecht
+            );
+            
+            if (!$stmt->execute()) {
+                throw new Exception("Fehler beim Speichern des Kochs: " . $stmt->error);
+            }
+
+            // 2. Letzte eingefügte Koch-ID holen
+            $kochID = $mysqli->insert_id;
+
+            // 3. Spezialgebiete verknüpfen
+            if (!empty($spezialgebiete)) {
+                $stmt_spezial = $mysqli->prepare("
+                    INSERT INTO Koch_Spezialgebiete 
+                    (kochID, spezialgebietID) 
+                    VALUES (?, ?)
+                ");
+
+                foreach ($spezialgebiete as $spezialgebietID) {
+                    $spezialgebietID = (int)$spezialgebietID;
+                    $stmt_spezial->bind_param("ii", $kochID, $spezialgebietID);
+                    
+                    if (!$stmt_spezial->execute()) {
+                        throw new Exception("Fehler beim Speichern der Spezialgebiete: " . $stmt_spezial->error);
+                    }
+                }
+            }
+
+            // Alles erfolgreich → Transaktion bestätigen
+            $mysqli->commit();
+            header("Location: koeche.php");
+            exit();
+
+        } catch (Exception $e) {
+            // Bei Fehlern: Transaktion rückgängig machen
+            $mysqli->rollback();
+            die("Fehler: " . $e->getMessage());
+        }
     } else {
-        echo "Fehler beim Einfügen: " . $mysqli->error;
+        // Fehler anzeigen
+        echo "<h2>Fehler:</h2><ul>";
+        foreach ($fehler as $f) {
+            echo "<li>" . htmlspecialchars($f) . "</li>";
+        }
+        echo "</ul>";
+        echo "<a href='koch_anlegen.php'>Zurück zum Formular</a>";
     }
 }
-
-$mysqli->close();
 ?>

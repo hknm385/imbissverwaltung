@@ -8,6 +8,7 @@ if ($mysqli->connect_error) {
 }
 if (!$mysqli->set_charset("utf8")) {
   echo "Fehler beim Laden von UTF8: " . $mysqli->error;
+  exit();
 }
 
 ?>

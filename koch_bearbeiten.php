@@ -1,60 +1,78 @@
-<?php
-include 'db.inc.php';
+<!DOCTYPE HTML>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>Koch bearbeiten</title>
+    <link rel="stylesheet" type="text/css" href="styles.css" />
+</head>
+<body>
+    <?php require_once("navigation.inc.php"); ?>
+    <h1>Koch bearbeiten</h1>
 
-$kochID = (int)$_GET['id'];
-
-// Koch-Daten aus der Datenbank holen
-$sql = "SELECT * FROM Koch WHERE kochID = $kochID";
-$result = $mysqli->query($sql);
-
-if ($result->num_rows == 1) {
-    $row = $result->fetch_assoc();
-    $spezialgebiete = explode(',', $row['spezialgebiet']);
-    ?>
-    <!DOCTYPE HTML>
-    <html lang="de">
-    <head>
-        <meta charset="UTF-8">
-        <title>Koch bearbeiten</title>
-        <link rel="stylesheet" type="text/css" href="styles.css" />
-    </head>
-    <body>
-        <?php require_once("navigation.inc.php"); ?>
-        <h1>Koch bearbeiten</h1>
-        <form action="koch_aktualisieren.php" method="post">
-            <input type="hidden" name="kochID" value="<?php echo $row['kochID']; ?>">
-            <label for="nachname">Nachname:</label><br>
-            <input type="text" id="nachname" name="nachname" value="<?php echo htmlspecialchars($row['nachname']); ?>" required><br><br>
-            <label for="vorname">Vorname:</label><br>
-            <input type="text" id="vorname" name="vorname" value="<?php echo htmlspecialchars($row['vorname']); ?>" required><br><br>
-            <label for="anzahl_von_sternen">Anzahl von Sternen:</label><br>
-            <input type="number" id="anzahl_von_sternen" name="anzahl_von_sternen" value="<?php echo $row['anzahl_von_sternen']; ?>" min="0" max="5"><br><br>
-            <label for="alter_koch">Alter:</label><br>
-            <input type="number" id="alter_koch" name="alter_koch" value="<?php echo $row['alter_koch']; ?>" min="18"><br><br>
-            <label for="geschlecht">Geschlecht:</label><br>
-            <select id="geschlecht" name="geschlecht">
-                <option value="männlich" <?php if($row['geschlecht'] == 'männlich') echo 'selected'; ?>>Männlich</option>
-                <option value="weiblich" <?php if($row['geschlecht'] == 'weiblich') echo 'selected'; ?>>Weiblich</option>
-            </select><br><br>
-            <label for="spezialgebiet">Spezialgebiet:</label><br>
-            <input type="checkbox" id="desserts" name="spezialgebiet[]" value="Desserts" <?php if(in_array('Desserts', $spezialgebiete)) echo 'checked'; ?>>
-            <label for="desserts">Desserts</label><br>
-            <input type="checkbox" id="hauptspeisen" name="spezialgebiet[]" value="Hauptspeisen" <?php if(in_array('Hauptspeisen', $spezialgebiete)) echo 'checked'; ?>>
-            <label for="hauptspeisen">Hauptspeisen</label><br>
-            <input type="checkbox" id="suppen" name="spezialgebiet[]" value="Suppen" <?php if(in_array('Suppen', $spezialgebiete)) echo 'checked'; ?>>
-            <label for="suppen">Suppen</label><br>
-            <input type="checkbox" id="vorspeisen" name="spezialgebiet[]" value="Vorspeisen" <?php if(in_array('Vorspeisen', $spezialgebiete)) echo 'checked'; ?>>
-            <label for="vorspeisen">Vorspeisen</label><br>
-            <input type="checkbox" id="grillgerichte" name="spezialgebiet[]" value="Grillgerichte" <?php if(in_array('Grillgerichte', $spezialgebiete)) echo 'checked'; ?>>
-            <label for="grillgerichte">Grillgerichte</label><br><br>
-            <input type="submit" value="Änderungen speichern">
-        </form>
-    </body>
-    </html>
     <?php
-} else {
-    echo "Koch nicht gefunden.";
-}
+    require_once("db.inc.php");
+    $kochID = (int)$_GET['id'];
 
-$mysqli->close();
-?>
+    // Daten des Kochs laden
+    $stmt = $mysqli->prepare("SELECT * FROM Koch WHERE kochID = ?");
+    $stmt->bind_param("i", $kochID);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $koch = $result->fetch_assoc();
+    ?>
+
+    <form action="koch_aktualisieren.php" method="post">
+        <input type="hidden" name="kochID" value="<?php echo $kochID; ?>">
+
+        <label for="nachname">Nachname:</label><br>
+        <input type="text" id="nachname" name="nachname" 
+               value="<?php echo htmlspecialchars($koch['nachname']); ?>" required><br><br>
+
+        <label for="vorname">Vorname:</label><br>
+        <input type="text" id="vorname" name="vorname" 
+               value="<?php echo htmlspecialchars($koch['vorname']); ?>" required><br><br>
+
+        <label for="anzahl_von_sternen">Sterne:</label><br>
+        <input type="number" id="anzahl_von_sternen" name="anzahl_von_sternen" 
+               value="<?php echo htmlspecialchars($koch['anzahl_von_sternen']); ?>" min="0" max="5"><br><br>
+
+        <label for="alter_koch">Alter:</label><br>
+        <input type="number" id="alter_koch" name="alter_koch" 
+               value="<?php echo htmlspecialchars($koch['alter_koch']); ?>" min="18"><br><br>
+
+        <label for="geschlecht">Geschlecht:</label><br>
+        <select id="geschlecht" name="geschlecht">
+            <option value="männlich" <?php echo ($koch['geschlecht'] === 'männlich' ? 'selected' : ''); ?>>Männlich</option>
+            <option value="weiblich" <?php echo ($koch['geschlecht'] === 'weiblich' ? 'selected' : ''); ?>>Weiblich</option>
+        </select><br><br>
+
+        <label>Spezialgebiet/e:</label><br>
+        <div class="checkbox-group">
+              <?php
+              require_once("db.inc.php");
+
+              // Alle Spezialgebiete laden
+              $spezialgebiete = $mysqli->query("SELECT * FROM Spezialgebiete");
+              while ($row = $spezialgebiete->fetch_assoc()) {
+                     // Prüfen, ob das Spezialgebiet ausgewählt ist
+                     $stmt = $mysqli->prepare("
+                     SELECT 1 FROM Koch_Spezialgebiete 
+                     WHERE kochID = ? AND spezialgebietID = ?
+                     ");
+                     $stmt->bind_param("ii", $kochID, $row['spezialgebietID']);
+                     $stmt->execute();
+                     $checked = $stmt->get_result()->num_rows > 0 ? 'checked' : '';
+
+                     echo '<label class="checkbox-label">';
+                     echo '<input type="checkbox" name="spezialgebiete[]" value="' . $row['spezialgebietID'] . '" ' . $checked . '> ';
+                     echo htmlspecialchars($row['name']);
+                     echo '</label>';
+              }
+              $mysqli->close();
+              ?>
+        </div>
+
+        <input type="submit" value="Speichern">
+    </form>
+</body>
+</html>

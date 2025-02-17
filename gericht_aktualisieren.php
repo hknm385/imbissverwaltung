@@ -1,22 +1,21 @@
 <?php
 require_once("db.inc.php");
 
-$gekochtesgerichtID = isset($_POST['gekochtesgerichtID']) ? (int)$_POST['gekochtesgerichtID'] : 0;
-$kochID = isset($_POST['kochID']) ? (int)$_POST['kochID'] : 0;
-$rezeptID = isset($_POST['rezeptID']) ? (int)$_POST['rezeptID'] : 0;
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $gerichtID = (int)$_POST['gerichtID'];
+    $kochID = (int)$_POST['kochID'];
+    $rezeptID = (int)$_POST['rezeptID'];
 
-$sql = "UPDATE GekochtesGericht SET 
-    kochID = $kochID, 
-    rezeptID = $rezeptID 
-    WHERE gekochtesgerichtID = $gekochtesgerichtID";
+    $stmt = $mysqli->prepare("UPDATE GekochtesGericht SET kochID = ?, rezeptID = ? WHERE gekochtesgerichtID = ?");
+    $stmt->bind_param("iii", $kochID, $rezeptID, $gerichtID);
 
-if ($mysqli->query($sql) === TRUE) {
-    echo "Gericht erfolgreich aktualisiert.";
-} else {
-    echo "Fehler: " . $sql . "<br>" . $mysqli->error;
+    if ($stmt->execute()) {
+        header("Location: gekochtes_gerichte.php");
+    } else {
+        die("Fehler: " . $stmt->error);
+    }
+
+    $stmt->close();
+    $mysqli->close();
 }
-
-$mysqli->close();
 ?>
-
-<a href="gekochte_gerichte.php">Zurück zur Gerichtsübersicht</a>

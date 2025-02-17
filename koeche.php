@@ -92,7 +92,10 @@ if ($result->num_rows > 0) {
         echo '<td>' . $row['alter_koch'] . '</td>';
         echo '<td>' . $row['geschlecht'] . '</td>';
         echo '<td>' . htmlspecialchars($row['spezialgebiet']) . '</td>';
-        echo '<td><a href="koch_bearbeiten.php?id=' . $row['kochID'] . '">Bearbeiten</a></td>';
+        echo '<td>
+                <a href="koch_bearbeiten.php?id=' . $row['kochID'] . '">Bearbeiten</a> 
+                <a href="koch_loeschen.php?id=' . $row['kochID'] . '" onclick="return confirm(\'Koch wirklich löschen?\')">Löschen</a>
+            </td>';
         echo '</tr>';
     }
     echo '</table>';

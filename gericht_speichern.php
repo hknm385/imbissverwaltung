@@ -1,18 +1,20 @@
 <?php
 require_once("db.inc.php");
 
-$kochID = (int)$_POST['kochID'];
-$rezeptID = (int)$_POST['rezeptID'];
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $kochID = (int)$_POST['kochID'];
+    $rezeptID = (int)$_POST['rezeptID'];
 
-$sql = "INSERT INTO GekochtesGericht (kochID, rezeptID) VALUES ($kochID, $rezeptID)";
+    $stmt = $mysqli->prepare("INSERT INTO GekochtesGericht (kochID, rezeptID) VALUES (?, ?)");
+    $stmt->bind_param("ii", $kochID, $rezeptID);
 
-if ($mysqli->query($sql) === TRUE) {
-    echo "Neues Gericht erfolgreich angelegt.";
-} else {
-    echo "Fehler: " . $sql . "<br>" . $mysqli->error;
+    if ($stmt->execute()) {
+        header("Location: gekochte_gerichte.php");
+    } else {
+        die("Fehler: " . $stmt->error);
+    }
+
+    $stmt->close();
+    $mysqli->close();
 }
-
-$mysqli->close();
 ?>
-
-<a href="gekochte_gerichte.php">Zurück zur Gerichtsübersicht</a>

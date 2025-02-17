@@ -56,7 +56,19 @@ CREATE TABLE Bestellung (
     FOREIGN KEY (gekochtesgerichtID) REFERENCES GekochtesGericht(gekochtesgerichtID)
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8;
 
+-- Neue Tabelle für Spezialgebiete
+CREATE TABLE Spezialgebiete (
+    spezialgebietID INT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(50) NOT NULL
+);
 
+-- Verknüpfungstabelle (Koch ↔ Spezialgebiete)
+CREATE TABLE Koch_Spezialgebiete (
+    kochID INT,
+    spezialgebietID INT,
+    FOREIGN KEY (kochID) REFERENCES Koch(kochID),
+    FOREIGN KEY (spezialgebietID) REFERENCES Spezialgebiete(spezialgebietID)
+);
 
 -- Hinzufügen von Testdaten
 
@@ -116,3 +128,16 @@ VALUES
     (5, 5, 14.90, 'karte'),  -- Laura Schneider bestellt Grillhähnchen
     (1, 6, 10.50, 'bar'),    -- Peter Meier bestellt Pizza Margherita
     (2, 7, 7.90, 'karte');   -- Lisa Schulz bestellt Schokoladenmousse
+
+
+-- 6. Spezialgebiete hinzufügen
+INSERT INTO Spezialgebiete (name) VALUES
+    ('Vorspeisen'),
+    ('Hauptgerichte'),
+    ('Beilagen'),
+    ('Desserts'),
+    ('Suppen und Eintöpfe'),
+    ('Salate'),
+    ('Saucen und Dips'),
+    ('Grillgerichte'),
+    ('Vegetarisches und veganes');

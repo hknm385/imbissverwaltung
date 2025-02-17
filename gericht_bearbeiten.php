@@ -11,53 +11,48 @@
 
     <?php
     require_once("db.inc.php");
+    $gerichtID = (int)$_GET['id'];
 
-    $gekochtesgerichtID = isset($_GET['id']) ? (int)$_GET['id'] : 0;
-
-    if ($gekochtesgerichtID > 0) {
-        $result = $mysqli->query("SELECT * FROM GekochtesGericht WHERE gekochtesgerichtID = $gekochtesgerichtID");
-
-        if ($result->num_rows > 0) {
-            $row = $result->fetch_assoc();
-
-            // Koch-Auswahl
-            $kochResult = $mysqli->query("SELECT kochID, CONCAT(nachname, ' ', vorname) AS kochname FROM Koch");
-
-            // Rezept-Auswahl
-            $rezeptResult = $mysqli->query("SELECT rezeptID, name FROM Rezept");
-            ?>
-            <form action="gericht_aktualisieren.php" method="post">
-                <input type="hidden" name="gekochtesgerichtID" value="<?php echo $row['gekochtesgerichtID']; ?>">
-                <label for="kochID">Koch:</label>
-                <select id="kochID" name="kochID" required>
-                    <?php while ($kochRow = $kochResult->fetch_assoc()) { ?>
-                        <option value="<?php echo $kochRow['kochID']; ?>" <?php echo ($kochRow['kochID'] == $row['kochID']) ? 'selected' : ''; ?>>
-                            <?php echo htmlspecialchars($kochRow['kochname']); ?>
-                        </option>
-                    <?php } ?>
-                </select>
-                <br>
-                <label for="rezeptID">Rezept:</label>
-                <select id="rezeptID" name="rezeptID" required>
-                    <?php while ($rezeptRow = $rezeptResult->fetch_assoc()) { ?>
-                        <option value="<?php echo $rezeptRow['rezeptID']; ?>" <?php echo ($rezeptRow['rezeptID'] == $row['rezeptID']) ? 'selected' : ''; ?>>
-                            <?php echo htmlspecialchars($rezeptRow['name']); ?>
-                        </option>
-                    <?php } ?>
-                </select>
-                <br>
-                <input type="submit" value="Aktualisieren">
-            </form>
-            <?php
-        } else {
-            echo "Gericht nicht gefunden.";
-        }
-    } else {
-        echo "Ungültige Gericht-ID.";
-    }
-
-    $mysqli->close();
+    // Gerichtdaten laden
+    $stmt = $mysqli->prepare("SELECT kochID, rezeptID FROM GekochtesGericht WHERE gekochtesgerichtID = ?");
+    $stmt->bind_param("i", $gerichtID);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $gericht = $result->fetch_assoc();
     ?>
-    <a href="gekochte_gerichte.php">Zurück zur Gerichtsübersicht</a>
+
+    <form action="gericht_aktualisieren.php" method="post">
+        <input type="hidden" name="gerichtID" value="<?php echo $gerichtID; ?>">
+
+        <!-- Dropdown für Köche -->
+        <label for="kochID">Koch:</label>
+        <select id="kochID" name="kochID" required>
+            <?php
+            $koeche = $mysqli->query("SELECT kochID, vorname, nachname FROM Koch");
+            while ($row = $koeche->fetch_assoc()) {
+                $selected = ($row['kochID'] == $gericht['kochID']) ? 'selected' : '';
+                echo '<option value="' . $row['kochID'] . '" ' . $selected . '>' 
+                     . htmlspecialchars($row['vorname'] . ' ' . $row['nachname']) . '</option>';
+            }
+            ?>
+        </select><br><br>
+
+        <!-- Dropdown für Rezepte -->
+        <label for="rezeptID">Rezept:</label>
+        <select id="rezeptID" name="rezeptID" required>
+            <?php
+            $rezepte = $mysqli->query("SELECT rezeptID, rezept_name FROM Rezept");
+            while ($row = $rezepte->fetch_assoc()) {
+                $selected = ($row['rezeptID'] == $gericht['rezeptID']) ? 'selected' : '';
+                echo '<option value="' . $row['rezeptID'] . '" ' . $selected . '>' 
+                     . htmlspecialchars($row['rezept_name']) . '</option>';
+            }
+            ?>
+        </select><br><br>
+
+        <input type="submit" value="Speichern">
+    </form>
+
+    <?php $mysqli->close(); ?>
 </body>
 </html>
